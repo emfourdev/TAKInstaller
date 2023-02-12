@@ -52,7 +52,7 @@
     <security>
         <tls context="TLSv1.2"
 		keymanager="Sunx509"
-		keystore="JKS" keystoreFile="certs/files/takserver.jks" keystorePass="kpass"
+		keystore="JKS" keystoreFile="certs/files/tserver.jks" keystorePass="kpass"
 		truststore="JKS" truststoreFile="certs/files/truststore-intermediate-ca.jks" truststorePass="tpass">
 	<crl _name="TAKServer CA" crlFile="certs/files/intermediate-ca.crl" />
 	</tls>
@@ -61,7 +61,7 @@
         <federation-server port="9000">
 		    <tls context="TLSV1.2"
 			     keymanager="SunX509"
-				 keystore="JKS" keystoreFile="certs/files/takserver.jks" keystorePass="kpass"
+				 keystore="JKS" keystoreFile="certs/files/tserver.jks" keystorePass="kpass"
 				 truststore="JKS" truststoreFile="certs/files/fed-truststore.jks" truststorePass="tpass"/>
         </federation-server>
     </federation>

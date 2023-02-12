@@ -229,16 +229,17 @@ function builtin(){
                 --backtitle "$appTitle" \
                 --title "[ S E C U R E - T A K S E R V E R ]" \
                 --output-separator , \
-                --form "Enter Certificate Authority Details (No Spaces)" 	16 80 0 \
-		"Root CA Name:"		1 1	"root-ca"	1 32 40 0\
-                "Intermedia CA Name:"	2 1	"intermediate-ca"   	2 32 40 0 \
-                "Country (2 Letters):" 	3 1	"US"      3 32 40 0 \
-                "State:"    		4 1	"CA"    	4 32 40 0 \
-                "City:"    		5 1	"LosAngeles"    	5 32 40 0 \
-                "Organisation:"    	6 1	"" 6 32 40 0 \
-                "Organisational Unit:"	7 1  	""      7 32 40 0 \
-                "CA Password:"     	8 1	""       8 32 40 0 \
-		"Certificate Expirary (days):"	9 1	"30"	9 32 40 0 \
+                --form "Enter Certificate Authority Details (No Spaces)" 	17 80 0 \
+		"TAK Server FQDN"	1 1	"takserver.domain.local"	1 32 40 0\
+		"Root CA Name:"		2 1	"root-ca"	1 32 40 0\
+                "Intermedia CA Name:"	3 1	"intermediate-ca"   	2 32 40 0 \
+                "Country (2 Letters):" 	4 1	"US"      3 32 40 0 \
+                "State:"    		5 1	"CA"    	4 32 40 0 \
+                "City:"    		6 1	"LosAngeles"    	5 32 40 0 \
+                "Organisation:"    	7 1	"" 6 32 40 0 \
+                "Organisational Unit:"	8 1  	""      7 32 40 0 \
+                "CA Password:"     	9 1	""       8 32 40 0 \
+		"Certificate Expirary (days):"	10 1	"30"	9 32 40 0 \
         2>&1 1>&3)
 
         if [ $? = 1 ]; then
@@ -278,15 +279,16 @@ function builtin(){
 		builtin
 	fi
 
-	caName=${values[0]}
-        subcaName=${values[1]}
-        country=${values[2]}
-        state=${values[3]}
-        city=${values[4]}
-        organisation=${values[5]}
-        orgunit=${values[6]}
-        caPass=${values[7]}
-	validity=${values[8]}
+	takServer=${values[0]}
+	caName=${values[1]}
+        subcaName=${values[2]}
+        country=${values[3]}
+        state=${values[4]}
+        city=${values[5]}
+        organisation=${values[6]}
+        orgunit=${values[7]}
+        caPass=${values[8]}
+	validity=${values[9]}
 
 	let idx=0
 	let percent=0
@@ -367,7 +369,7 @@ function builtin(){
 	aryCommands+=( "sudo ./makeCert.sh ca intermediate-ca" )
 	aryPrompts+=( "Creating Intermediate Certificate Authority" )
 
-	aryCommands+=( "sudo ./makeCert.sh server takserver" )
+	aryCommands+=( "sudo ./makeCert.sh server ${takServer}" )
 	aryPrompts+=( "Creating TAK Server Certificate" )
 
 	aryCommands+=( "sudo systemctl enable takserver" )
@@ -449,27 +451,28 @@ EOF
 	cd /opt/tak/certs
 	;;
   "Configuring Certificate Authority")
-	sudo cp "$SCRIPT_DIR"/Intermediate/cert-metadata.sh /opt/tak/certs
-	sudo sed -i "s/COUNTRY=/COUNTRY=${country}/" /opt/tak/certs/cert-metadata.sh
-	sudo sed -i "s/STATE=/STATE=${state}/" /opt/tak/certs/cert-metadata.sh
-	sudo sed -i "s/CITY=/CITY=${city}/" /opt/tak/certs/cert-metadata.sh
-	sudo sed -i "s/ORGANIZATION=/ORGANIZATION=${organisation}/" /opt/tak/certs/cert-metadata.sh
-	sudo sed -i "s/ORGANIZATIONAL_UNIT=/ORGANIZATIONAL_UNIT=${orgunit}/" /opt/tak/certs/cert-metadata.sh
-	sudo sed -i "s/CAPASS=/CAPASS=${caPass}/" /opt/tak/certs/cert-metadata.sh
+	sudo -u tak cp "$SCRIPT_DIR"/Intermediate/cert-metadata.sh /opt/tak/certs
+	sudo -u tak sed -i "s/COUNTRY=/COUNTRY=${country}/" /opt/tak/certs/cert-metadata.sh
+	sudo -u tak sed -i "s/STATE=/STATE=${state}/" /opt/tak/certs/cert-metadata.sh
+	sudo -u tak sed -i "s/CITY=/CITY=${city}/" /opt/tak/certs/cert-metadata.sh
+	sudo -u tak sed -i "s/ORGANIZATION=/ORGANIZATION=${organisation}/" /opt/tak/certs/cert-metadata.sh
+	sudo -u tak sed -i "s/ORGANIZATIONAL_UNIT=/ORGANIZATIONAL_UNIT=${orgunit}/" /opt/tak/certs/cert-metadata.sh
+	sudo -u tak sed -i "s/CAPASS=/CAPASS=${caPass}/" /opt/tak/certs/cert-metadata.sh
 	cd /opt/tak/certs
 	;;
   "Configuring TAK For Intermediate Certificate Authority")
-	sudo cp "$SCRIPT_DIR"/Intermediate/CoreConfig.xml /opt/tak
+	sudo -u tak cp "$SCRIPT_DIR"/Intermediate/CoreConfig.xml /opt/tak
 	sudo chown tak:tak /opt/tak/CoreConfig.xml
 	sudo chmod 655 /opt/tak/CoreConfig.xml
-	sudo sed -i "s/EMFOURSOLUTIONS/${organisation}/" /opt/tak/CoreConfig.xml
-	sudo sed -i "s/DEV/${orgunit}/" /opt/tak/CoreConfig.xml
-	sudo sed -i "s/intermediate-ca-signing/${subcaName}-signing/" /opt/tak/CoreConfig.xml
-	sudo sed -i "s/kpass/${caPass}/" /opt/tak/CoreConfig.xml
-	sudo sed -i "s/truststore-intermediate-ca/truststore-${subcaName}/" /opt/tak/CoreConfig.xml
-	sudo sed -i "s/tpass/${caPass}/" /opt/tak/CoreConfig.xml
-	sudo sed -i "s/intermediate-ca.crl/${subcaName}.crl/" /opt/tak/CoreConfig.xml
-	sudo sed -i "s/30/${validity}/" /opt/tak/CoreConfig.xml
+	sudo -u tak sed -i "s/EMFOURSOLUTIONS/${organisation}/" /opt/tak/CoreConfig.xml
+	sudo -u tak sed -i "s/DEV/${orgunit}/" /opt/tak/CoreConfig.xml
+	sudo -u tak sed -i "s/intermediate-ca-signing/${subcaName}-signing/" /opt/tak/CoreConfig.xml
+	sudo -u tak sed -i "s/tserver/${takServer}/" /opt/tak/CoreConfig.xml
+	sudo -u tak sed -i "s/kpass/${caPass}/" /opt/tak/CoreConfig.xml
+	sudo -u tak sed -i "s/truststore-intermediate-ca/truststore-${subcaName}/" /opt/tak/CoreConfig.xml
+	sudo -u tak sed -i "s/tpass/${caPass}/" /opt/tak/CoreConfig.xml
+	sudo -u tak sed -i "s/intermediate-ca.crl/${subcaName}.crl/" /opt/tak/CoreConfig.xml
+	sudo -u tak sed -i "s/30/${validity}/" /opt/tak/CoreConfig.xml
 	;;
    *)
         $COMMAND &>> $log
@@ -525,21 +528,22 @@ function ldapint(){
                 --backtitle "$appTitle" \
                 --title "[ L D A P - T A K S E R V E R ]" \
                 --output-separator : \
-                --form "Enter Certificate Authority Details (No Spaces)" 	21 110 0 \
-		"Root CA Name:"		1 1	"root-ca"	1 32 100 0\
-                "Intermedia CA Name:"	2 1	"intermediate-ca"   	2 32 100 0 \
-                "Country (2 Letters):" 	3 1	"US"      3 32 100 0 \
-                "State:"    		4 1	"CA"    	4 32 100 0 \
-                "City:"    		5 1	"LosAngeles"    	5 32 100 0 \
-                "Organisation:"    	6 1	"$organisation" 6 32 100 0 \
-                "Organisational Unit:"	7 1  	"$orgunit"      7 32 100 0 \
-                "CA Password:"     	8 1	"$caPass"       8 32 100 0 \
-		"Certificate Expirary (days)"	9 1	"30"	9 32 100 0 \
-                "LDAP Server URL:"     	10 1	"ldap.domain.local"       10 32 100 0 \
-		"User Account DN:"	11 1	"ou=People,dc=domain,dc=local"	11 32 100 0 \
-		"Service Account DN:"	12 1	"cn=serviceAccount,ou=People,dc=domain,dc=local"	12 32 100 0 \
-		"Service Password:"	13 1	"$servPassword" 13 32 100 0 \
-		"Group Root DN:" 	14 1	"ou=People,dc=domain,dc=local"	14 32 100 0 \
+                --form "Enter Certificate Authority Details (No Spaces)" 	22 110 0 \
+		"TAK Server FQDN"	1 1	"takserver.domain.local"	1 32 100 0\
+		"Root CA Name:"		2 1	"root-ca"	1 32 100 0\
+                "Intermedia CA Name:"	3 1	"intermediate-ca"   	2 32 100 0 \
+                "Country (2 Letters):" 	4 1	"US"      3 32 100 0 \
+                "State:"    		5 1	"CA"    	4 32 100 0 \
+                "City:"    		6 1	"LosAngeles"    	5 32 100 0 \
+                "Organisation:"    	7 1	"$organisation" 6 32 100 0 \
+                "Organisational Unit:"	8 1  	"$orgunit"      7 32 100 0 \
+                "CA Password:"     	9 1	"$caPass"       8 32 100 0 \
+		"Certificate Expirary (days)"	10 1	"30"	9 32 100 0 \
+                "LDAP Server URL:"     	11 1	"ldap.domain.local"       10 32 100 0 \
+		"User Account DN:"	12 1	"ou=People,dc=domain,dc=local"	11 32 100 0 \
+		"Service Account DN:"	13 1	"cn=serviceAccount,ou=People,dc=domain,dc=local"	12 32 100 0 \
+		"Service Password:"	14 1	"$servPassword" 13 32 100 0 \
+		"Group Root DN:" 	15 1	"ou=People,dc=domain,dc=local"	14 32 100 0 \
         2>&1 1>&3)
 
         if [ $? = 1 ]; then
@@ -579,20 +583,21 @@ function ldapint(){
 		builtin
 	fi
 
-	caName=${values[0]}
-        subcaName=${values[1]}
-        country=${values[2]}
-        state=${values[3]}
-        city=${values[4]}
-        organisation=${values[5]}
-        orgunit=${values[6]}
-        caPass=${values[7]}
-	validity=${values[8]}
-	ldapUrl=${values[9]}
-	userDN=${values[10]}
-	servAccount=${values[11]}
-	servPassword=${values[12]}
-	groupRDN=${values[13]}
+	takServer=${values[0]}
+	caName=${values[1]}
+        subcaName=${values[2]}
+        country=${values[3]}
+        state=${values[4]}
+        city=${values[5]}
+        organisation=${values[6]}
+        orgunit=${values[7]}
+        caPass=${values[8]}
+	validity=${values[9]}
+	ldapUrl=${values[10]}
+	userDN=${values[11]}
+	servAccount=${values[12]}
+	servPassword=${values[13]}
+	groupRDN=${values[14]}
 
 	let idx=0
 	let percent=0
@@ -673,7 +678,7 @@ function ldapint(){
 	aryCommands+=( "sudo ./makeCert.sh ca intermediate-ca" )
 	aryPrompts+=( "Creating Intermediate Certificate Authority" )
 
-	aryCommands+=( "sudo ./makeCert.sh server takserver" )
+	aryCommands+=( "sudo ./makeCert.sh server ${takServer}" )
 	aryPrompts+=( "Creating TAK Server Certificate" )
 
 	aryCommands+=( "sudo systemctl enable takserver" )
@@ -769,20 +774,21 @@ EOF
 	sudo chown tak:tak /opt/tak/CoreConfig.xml
 	sudo chmod 655 /opt/tak/CoreConfig.xml
 
-	sudo sed -i "s/ldapUrl/${ldapUrl}/" /opt/tak/CoreConfig.xml
-	sudo sed -i "s/userDN/${userDN}/" /opt/tak/CoreConfig.xml
-	sudo sed -i "s/servAccount/${servAccount}/" /opt/tak/CoreConfig.xml
-	sudo sed -i "s/servPassword/${servPassword}/" /opt/tak/CoreConfig.xml
-	sudo sed -i "s/groupRDN/${groupRDN}/" /opt/tak/CoreConfig.xml
+	sudo -u tak sed -i "s/ldapUrl/${ldapUrl}/" /opt/tak/CoreConfig.xml
+	sudo -u tak sed -i "s/userDN/${userDN}/" /opt/tak/CoreConfig.xml
+	sudo -u tak sed -i "s/servAccount/${servAccount}/" /opt/tak/CoreConfig.xml
+	sudo -u tak sed -i "s/servPassword/${servPassword}/" /opt/tak/CoreConfig.xml
+	sudo -u tak sed -i "s/groupRDN/${groupRDN}/" /opt/tak/CoreConfig.xml
 
-	sudo sed -i "s/EMFOURSOLUTIONS/${organisation}/" /opt/tak/CoreConfig.xml
-	sudo sed -i "s/DEV/${orgunit}/" /opt/tak/CoreConfig.xml
-	sudo sed -i "s/intermediate-ca-signing/${subcaName}-signing/" /opt/tak/CoreConfig.xml
-	sudo sed -i "s/kpass/${caPass}/" /opt/tak/CoreConfig.xml
-	sudo sed -i "s/truststore-intermediate-ca/truststore-${subcaName}/" /opt/tak/CoreConfig.xml
-	sudo sed -i "s/tpass/${caPass}/" /opt/tak/CoreConfig.xml
-	sudo sed -i "s/intermediate-ca.crl/${subcaName}.crl/" /opt/tak/CoreConfig.xml
-	sudo sed -i "s/30/${validity}/" /opt/tak/CoreConfig.xml
+	sudo -u tak sed -i "s/EMFOURSOLUTIONS/${organisation}/" /opt/tak/CoreConfig.xml
+	sudo -u tak sed -i "s/DEV/${orgunit}/" /opt/tak/CoreConfig.xml
+	sudo -u tak sed -i "s/intermediate-ca-signing/${subcaName}-signing/" /opt/tak/CoreConfig.xml
+	sudo -u tak sed -i "s/tserver/${takServer}/" /opt/tak/CoreConfig.xml
+	sudo -u tak sed -i "s/kpass/${caPass}/" /opt/tak/CoreConfig.xml
+	sudo -u tak sed -i "s/truststore-intermediate-ca/truststore-${subcaName}/" /opt/tak/CoreConfig.xml
+	sudo -u tak sed -i "s/tpass/${caPass}/" /opt/tak/CoreConfig.xml
+	sudo -u tak sed -i "s/intermediate-ca.crl/${subcaName}.crl/" /opt/tak/CoreConfig.xml
+	sudo -u tak sed -i "s/30/${validity}/" /opt/tak/CoreConfig.xml
 	
 	;;
    *)

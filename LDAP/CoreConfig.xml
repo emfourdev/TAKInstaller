@@ -12,7 +12,7 @@
         <connector port="8080" tls="false" _name="http_plaintext"/>
         <announce/>
     </network>
-    <auth default="ldap" x509groups="true" x509addAnonymous="true">
+    <auth default="ldap" x509groups="true" x509addAnonymous="false">
          <ldap url="ldap://ldapUrl/" userstring="cn={username},userDN" updateinterval="60" style="DS" ldapSecurityType="simple" serviceAccountDN="servAccount" serviceAccountCredential="servPassword" groupObjectClass="posixGroup" groupBaseRDN="groupRDN"/>
          <File location="UserAuthenticationFile.xml"/>
     </auth>
@@ -53,7 +53,7 @@
     <security>
         <tls context="TLSv1.2"
                 keymanager="Sunx509"
-                keystore="JKS" keystoreFile="certs/files/takserver.jks" keystorePass="kpass"
+                keystore="JKS" keystoreFile="certs/files/tserver.jks" keystorePass="kpass"
                 truststore="JKS" truststoreFile="certs/files/truststore-intermediate-ca.jks" truststorePass="tpass">
         <crl _name="TAKServer CA" crlFile="certs/files/intermediate-ca.crl" />
         </tls>
@@ -62,7 +62,7 @@
         <federation-server port="9000">
 		    <tls context="TLSV1.2"
 			     keymanager="SunX509"
-				 keystore="JKS" keystoreFile="certs/files/takserver.jks" keystorePass="kpass"
+				 keystore="JKS" keystoreFile="certs/files/tserver.jks" keystorePass="kpass"
 				 truststore="JKS" truststoreFile="certs/files/fed-truststore.jks" truststorePass="tpass"/>
         </federation-server>
     </federation>
